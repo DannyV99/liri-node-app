@@ -5,6 +5,7 @@ var keys = require('./keys.js');
 
 
 var inquirer = require('inquirer');
+var fs = require('fs');
 
 inquirer
     .prompt([
@@ -13,17 +14,19 @@ inquirer
             type: "checkbox",
             name: "question1",
             message: "Please choose One.",
-            choices: ['Songs', 'Concerts', 'Movie'],
+            choices: ['Songs', 'Concerts', 'Movie', 'Do Whatever'],
         }
     ]).then(function (response) {
         var answer = response.question1.join('')
-    
+
         if (answer === 'Songs') {
             runSpotify();
         } else if (answer === 'Concerts') {
             runBandsintown();
         } else if (answer === 'Movie') {
             runMovie()
+        } else if (answer === 'Do Whatever') {
+            doWhatever()
         }
     })
 
@@ -122,14 +125,15 @@ function runMovie() {
                 message: "Which movie?"
             }
         ]).then(function (userInput) {
-            var urlHit =
-                "http://www.omdbapi.com/?t=" + userInput.movieName + "&y=&plot=full&tomatoes=true&apikey=" + keys.omdb.omdbApi;
 
             var movieName = userInput.movieName;
 
-            if (movieName === '' || !movieName) {
+            if (userInput.movieName === '' || !userInput.movieName) {
                 movieName = "Mr. Nobody";
             }
+
+            var urlHit =
+                "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=full&tomatoes=true&apikey=" + keys.omdb.omdbApi;
 
             request(urlHit, function (error, response, body) {
                 console.log('error:', error);
@@ -147,5 +151,27 @@ function runMovie() {
 
             });
         })
+}
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+// ++++++++++++++++++ FS +++++++++++++++++++++++++++++++
+
+function doWhatever() {
+    fs.readFile('random.txt', "utf8", function (error, data) {
+
+        if (error) {
+            return console.log(error);
+        }
+
+        var dataArr = data.split(",");
+        if (dataArr[0] === '* spotify-this-song') {
+            runSpotify()
+        } else if (dataArr[0] === '* concert-this') {
+            runBandsintown()
+        } else if (dataArr[0] === '* movie-this') {
+            runMovie()
+        }
+
+    });
 }
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
